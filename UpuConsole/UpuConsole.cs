@@ -1,4 +1,5 @@
-﻿using CommandLine;
+﻿using System;
+using CommandLine;
 using System.IO;
 using UpuCore;
 
@@ -7,7 +8,7 @@ namespace UpuConsole
     class UpuConsole
     {
 #region Command line parameters
-        [Option('i', "input", Required = true, HelpText = "Unitypackage input file.")]
+        [Option('i', "input", Required = false, HelpText = "Unitypackage input file.")]
         public string InputFile{ get; set; }
 
         [Option('o', "output", Required = false, HelpText = "The output path of the extracted unitypackage.")]
@@ -20,21 +21,54 @@ namespace UpuConsole
         public bool Unregister { get; set; }
 #endregion
 
+        /// <summary>
+        /// Starts the Unitypackage Unpacker. Unpacks package, registers or unregisters shell handler.
+        /// </summary>
         internal void Start()
         {
-
-            if (OutputPath == null && File.Exists(InputFile))
+            // if input file is given, but does not exists, exit with error
+            if (!string.IsNullOrEmpty(InputFile) && !File.Exists(InputFile))
             {
-                var fileInfo = new FileInfo(InputFile);
-                OutputPath = Path.Combine(fileInfo.Directory.FullName, fileInfo.Name + "_unpacked");
+                Console.WriteLine("File not found: " + InputFile);
+                Environment.Exit(1);
+            }
+
+            // If inputfile is set, we want to unpack something.
+            // If its not set, we propably just want to un/register the shell handler
+            if (!string.IsNullOrEmpty(InputFile))
+            {
+                var inputFileInfo = new FileInfo(InputFile);
+
+                // If output path is not set, define a standard, which is <inputfilepath_unpacked>
+                if (OutputPath == null)
+                    OutputPath = Path.Combine(inputFileInfo.Directory.FullName, inputFileInfo.Name + "_unpacked");
+
+                // If output path already exists, find an alternative!
+                if (Directory.Exists(OutputPath))
+                {
+                    int appendix = 2;
+                    while (true)
+                    {
+                        var newOutputPath = Path.Combine(inputFileInfo.Directory.FullName,
+                            inputFileInfo.Name + "_unpacked (" + appendix + ")");
+
+                        if (!Directory.Exists(newOutputPath))
+                        {
+                            Directory.CreateDirectory(newOutputPath);
+                            OutputPath = newOutputPath;
+                            break;
+                        }
+                        appendix++;
+                    }
+                }
             }
 
             // TODO 2: Add selective deselection via UI
             var u = new KISSUnpacker();
             if (Register)
-                u.RegisterHandler();
+                u.RegisterDefaultShellHandler();
             else if (Unregister)
-                u.UnregisterHandler();
+                u.UnregisterDefaultShellHandler();
 
             if (InputFile != null)
                 u.Unpack(InputFile, OutputPath);

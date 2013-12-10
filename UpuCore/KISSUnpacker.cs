@@ -1,10 +1,9 @@
-﻿using ICSharpCode.SharpZipLib.Tar;
+﻿using System.Linq;
+using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.Win32;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Reflection;
 
 namespace UpuCore
@@ -14,6 +13,10 @@ namespace UpuCore
         /// <summary>
         /// Just do it
         /// </summary>
+        /// <param name="inputFilepath">The input filepath.</param>
+        /// <param name="outputPath">The output path. Will be generated if it does not exist.</param>
+        /// <exception cref="System.IO.FileNotFoundException"></exception>
+        /// <exception cref="System.ArgumentException">File should have unitypackage extension</exception>
         public void Unpack(string inputFilepath, string outputPath)
         {
             Console.WriteLine("Extracting " + inputFilepath + " to " + outputPath);
@@ -39,39 +42,48 @@ namespace UpuCore
             string tempPath = Path.Combine(Path.GetTempPath(), "Upu");
             string f = DecompressGZip(new FileInfo(inputFilepath), tempPath);
 
-            string contentPath = Path.Combine(Path.GetTempPath(), "Upu\\content");
-            ExtractTar(f, contentPath);
+            string tempContentPath = Path.Combine(Path.GetTempPath(), "Upu\\content");
+            ExtractTar(f, tempContentPath);
 
-            RemapFiles(contentPath, outputPath);
+            RemapFiles(tempContentPath, outputPath);
 
             // remove all extracted tem files
             RemoveTempFiles(tempPath);
         }
 
+        /// <summary>
+        /// Removes the temporary files.
+        /// </summary>
+        /// <param name="tempPath">The temporary path.</param>
         private void RemoveTempFiles(string tempPath)
         {
-            DirectoryInfo downloadedMessageInfo = new DirectoryInfo(tempPath);
+            var tempPathInfo = new DirectoryInfo(tempPath);
 
-            foreach (FileInfo file in downloadedMessageInfo.GetFiles())
+            foreach (FileInfo file in tempPathInfo.GetFiles())
             {
                 file.Delete();
             }
-            foreach (DirectoryInfo dir in downloadedMessageInfo.GetDirectories())
+            foreach (DirectoryInfo dir in tempPathInfo.GetDirectories())
             {
                 dir.Delete(true);
             }
         }
 
-        private void RemapFiles(string contentPath, string remappedPath)
+        /// <summary>
+        /// Remaps the files to the remapPath according to the information found in the unityPackage file.
+        /// </summary>
+        /// <param name="contentPath">The content path.</param>
+        /// <param name="remapPath">The remapped path.</param>
+        private void RemapFiles(string contentPath, string remapPath)
         {
             foreach (var directoryInfo in new DirectoryInfo(contentPath).GetDirectories())
             {
-                string pathname = File.ReadLines(Path.Combine(directoryInfo.FullName, "pathname")).First();
-                pathname = pathname.Replace('/', Path.DirectorySeparatorChar);
+                string pathnameFromFile = File.ReadLines(Path.Combine(directoryInfo.FullName, "pathname")).First();
+                pathnameFromFile = pathnameFromFile.Replace('/', Path.DirectorySeparatorChar);
 
                 string assetFilePath = Path.Combine(directoryInfo.FullName, "asset");
 
-                var targetFilePath = Path.Combine(remappedPath, pathname);
+                var targetFilePath = Path.Combine(remapPath, pathnameFromFile);
                 var targetPath = new FileInfo(targetFilePath).Directory.FullName;
 
                 if (!Directory.Exists(targetPath))
@@ -88,7 +100,13 @@ namespace UpuCore
             }
         }
 
-        public static string DecompressGZip(FileInfo fileToDecompress, string outputPath)
+        /// <summary>
+        /// Decompresses the gzipped file and output it to outputPath.
+        /// </summary>
+        /// <param name="fileToDecompress">The file to decompress.</param>
+        /// <param name="outputPath">The output path.</param>
+        /// <returns></returns>
+        private string DecompressGZip(FileInfo fileToDecompress, string outputPath)
         {
             string target;
 
@@ -117,7 +135,7 @@ namespace UpuCore
         }
 
         /// <summary>
-        /// https://github.com/icsharpcode/SharpZipLib/wiki/GZip-and-Tar-Samples#wiki-anchorTar
+        /// @See https://github.com/icsharpcode/SharpZipLib/wiki/GZip-and-Tar-Samples#wiki-anchorTar
         /// </summary>
         /// <param name="tarFileName"></param>
         /// <param name="destFolder"></param>
@@ -131,21 +149,34 @@ namespace UpuCore
             }
     }
 
-        public void RegisterHandler()
+        /// <summary>
+        /// Registers the default shell handler.
+        /// </summary>
+        public void RegisterDefaultShellHandler()
         {
             // http://www.codeproject.com/Articles/15171/Simple-shell-context-menu
             // get full path to self, %L is a placeholder for the selected file
             string menuCommand = string.Format("\"{0}\" \"%L\"", Assembly.GetEntryAssembly().Location);
-            Register("Unity package file", "Unpack", "Unpack here", menuCommand);
+            RegisterShellHandler("Unity package file", "Unpack", "Unpack here", menuCommand);
         }
 
-        public void UnregisterHandler()
+        /// <summary>
+        /// Unregisters the default shell handler.
+        /// </summary>
+        public void UnregisterDefaultShellHandler()
         {
             // sample usage to unregister
-            Unregister("Unity package file", "Unpack");
+            UnregisterShellHandler("Unity package file", "Unpack");
         }
 
-        private void Register(string fileType,
+        /// <summary>
+        /// Registers the shell handler.
+        /// </summary>
+        /// <param name="fileType">Type of the file.</param>
+        /// <param name="shellKeyName">Name of the shell key.</param>
+        /// <param name="menuText">The menu text.</param>
+        /// <param name="menuCommand">The menu command.</param>
+        private void RegisterShellHandler(string fileType,
            string shellKeyName, string menuText, string menuCommand)
         {
             // create path to registry location
@@ -167,10 +198,15 @@ namespace UpuCore
             }
         }
 
-        private void Unregister(string fileType, string shellKeyName)
+        /// <summary>
+        /// Unregisters the shell handler.
+        /// </summary>
+        /// <param name="fileType">Type of the file.</param>
+        /// <param name="shellKeyName">Name of the shell key.</param>
+        private void UnregisterShellHandler(string fileType, string shellKeyName)
         {
-            Debug.Assert(!string.IsNullOrEmpty(fileType) &&
-                !string.IsNullOrEmpty(shellKeyName));
+            if (string.IsNullOrEmpty(fileType) || string.IsNullOrEmpty(shellKeyName))
+                return;
 
             // path to the registry location
             string regPath = string.Format(@"{0}\shell\{1}",
