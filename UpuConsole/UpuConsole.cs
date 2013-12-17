@@ -1,6 +1,7 @@
 ﻿using System;
 using CommandLine;
 using System.IO;
+using CommandLine.Text;
 using UpuCore;
 
 namespace UpuConsole
@@ -26,11 +27,18 @@ namespace UpuConsole
         /// </summary>
         internal void Start()
         {
+            if (string.IsNullOrEmpty(InputFile) && !Register && !Unregister)
+            {
+                Console.WriteLine(GetUsage());
+                Environment.Exit(1);
+            }
+
             // if input file is given, but does not exists, exit with error
             if (!string.IsNullOrEmpty(InputFile) && !File.Exists(InputFile))
             {
                 Console.WriteLine("File not found: " + InputFile);
-                Environment.Exit(1);
+                Console.WriteLine(GetUsage());
+                Environment.Exit(2);
             }
 
             // If inputfile is set, we want to unpack something.
@@ -65,13 +73,30 @@ namespace UpuConsole
 
             // TODO 2: Add selective deselection via UI
             var u = new KISSUnpacker();
-            if (Register)
-                u.RegisterDefaultShellHandler();
-            else if (Unregister)
-                u.UnregisterDefaultShellHandler();
 
+            try
+            {
+                if (Register)
+                    u.RegisterDefaultShellHandler();
+                else if (Unregister)
+                    u.UnregisterDefaultShellHandler();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                if (Register)
+                    Console.WriteLine("Error: UnauthorizedAccessException. Cannot register explorer context menu handler!");
+                if (Unregister)
+                    Console.WriteLine("Error: UnauthorizedAccessException. Cannot register explorer context menu handler!");
+            }
             if (InputFile != null)
                 u.Unpack(InputFile, OutputPath);
+        }
+        
+        [HelpOption]
+        public string GetUsage()
+        {
+            return HelpText.AutoBuild(this,
+              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
         }
     }
 }

@@ -123,7 +123,8 @@ namespace UpuCore
 
                 using (FileStream decompressedFileStream = File.Create(target))
                 {
-                    using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
+                    using (
+                        GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
                     {
                         decompressionStream.CopyTo(decompressedFileStream);
                         Console.WriteLine("Decompressed: {0}", fileToDecompress.Name);
@@ -141,13 +142,13 @@ namespace UpuCore
         /// <param name="destFolder"></param>
         public void ExtractTar(String tarFileName, String destFolder)
         {
-            using(Stream inStream = File.OpenRead(tarFileName))
+            using (Stream inStream = File.OpenRead(tarFileName))
             {
                 TarArchive tarArchive = TarArchive.CreateInputTarArchive(inStream);
                 tarArchive.ExtractContents(destFolder);
                 tarArchive.Close();
             }
-    }
+        }
 
         /// <summary>
         /// Registers the default shell handler.
@@ -177,15 +178,15 @@ namespace UpuCore
         /// <param name="menuText">The menu text.</param>
         /// <param name="menuCommand">The menu command.</param>
         private void RegisterShellHandler(string fileType,
-           string shellKeyName, string menuText, string menuCommand)
+            string shellKeyName, string menuText, string menuCommand)
         {
             // create path to registry location
             string regPath = string.Format(@"{0}\shell\{1}",
-                                           fileType, shellKeyName);
+                fileType, shellKeyName);
 
             // add context menu to the registry
             using (RegistryKey key =
-                   Registry.ClassesRoot.CreateSubKey(regPath))
+                Registry.ClassesRoot.CreateSubKey(regPath))
             {
                 key.SetValue(null, menuText);
             }
@@ -210,7 +211,7 @@ namespace UpuCore
 
             // path to the registry location
             string regPath = string.Format(@"{0}\shell\{1}",
-                                           fileType, shellKeyName);
+                fileType, shellKeyName);
 
             // remove context menu from the registry
             Registry.ClassesRoot.DeleteSubKeyTree(regPath);
