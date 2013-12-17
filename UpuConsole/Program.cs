@@ -21,7 +21,8 @@ namespace UpuConsole
                 else
                 {
                     Console.WriteLine("Parameter error"); // todo: display generated usage
-                    return;
+                    Console.WriteLine(upu.GetUsage());
+                    Environment.Exit(9);
                 }
             }
 
