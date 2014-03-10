@@ -3,6 +3,7 @@ using CommandLine;
 using System.IO;
 using CommandLine.Text;
 using UpuCore;
+using System.Text;
 
 namespace UpuConsole
 {
@@ -88,15 +89,39 @@ namespace UpuConsole
                 if (Unregister)
                     Console.WriteLine("Error: UnauthorizedAccessException. Cannot register explorer context menu handler!");
             }
-            if (InputFile != null)
-                u.Unpack(InputFile, OutputPath);
+
+            try
+            {
+                if (InputFile != null)
+                    u.Unpack(InputFile, OutputPath);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("==========================================");
+                Console.WriteLine(e);
+                Console.WriteLine("==========================================");
+
+                if (Environment.UserInteractive)
+                {
+                    Console.WriteLine("An error occured (see above)!. Press a key to continue...");
+                    Console.ReadLine();
+                }
+            }
         }
         
         [HelpOption]
         public string GetUsage()
         {
-            return HelpText.AutoBuild(this,
-              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+            var sb = new StringBuilder();
+            
+            sb.AppendLine();
+
+            sb.Append(HelpText.AutoBuild(this, (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current)));
+
+            sb.AppendLine("Help us make to this piece of software even better and contribute!");
+            sb.AppendLine("https://github.com/ChimeraEntertainment/UPU");
+
+            return sb.ToString();
         }
     }
 }

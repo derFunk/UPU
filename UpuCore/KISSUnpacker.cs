@@ -30,11 +30,11 @@ namespace UpuCore
                     throw new FileNotFoundException(inputFilepath);
             }
 
+            if (!inputFilepath.ToLower().EndsWith(".unitypackage"))
+                throw new ArgumentException("File should have unitypackage extension");
+
             if (!Directory.Exists(outputPath))
                 Directory.CreateDirectory(outputPath);
-
-            if (!inputFilepath.EndsWith(".unitypackage"))
-                throw new ArgumentException("File should have unitypackage extension");
 
             // @see https://github.com/icsharpcode/SharpZipLib/wiki/Code-Reference
             // @see http://msdn.microsoft.com/en-us/library/ms404280(v=vs.110).aspx
