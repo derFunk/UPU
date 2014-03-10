@@ -21,6 +21,11 @@ upu.exe [options]
 -r, --register: Register context menu handler.<br /> 
 -u, --unregister: Unregister context menu handler.<br /> 
 
+Works on
+---
+
+- Windows
+- Linux / Mac OSX with Mono. Example: $ mono UpuConsole.exe -i ../StoreKit_2012-04-10.unitypackage (You have Mono installed if you have Unity 3D installed :+1:
 
 Roadmap (Todos)
 ---
