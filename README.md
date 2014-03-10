@@ -25,7 +25,7 @@ Works on
 ---
 
 - Windows
-- Linux / Mac OSX with Mono. Example: $ mono UpuConsole.exe -i ../StoreKit_2012-04-10.unitypackage (You have Mono installed if you have Unity 3D installed :+1:
+- Linux / Mac OSX with Mono. Example: $ mono UpuConsole.exe -i TestPackage.unitypackage (You have Mono installed if you have Unity 3D installed :+1:
 
 Roadmap (Todos)
 ---
