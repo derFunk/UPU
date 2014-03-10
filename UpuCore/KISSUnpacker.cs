@@ -42,7 +42,8 @@ namespace UpuCore
             string tempPath = Path.Combine(Path.GetTempPath(), "Upu");
             string f = DecompressGZip(new FileInfo(inputFilepath), tempPath);
 
-            string tempContentPath = Path.Combine(Path.GetTempPath(), "Upu\\content");
+            string tempContentPath = Path.Combine(tempPath, "content");
+            
             ExtractTar(f, tempContentPath);
 
             RemapFiles(tempContentPath, outputPath);
@@ -142,12 +143,23 @@ namespace UpuCore
         /// <param name="destFolder"></param>
         public void ExtractTar(String tarFileName, String destFolder)
         {
+            Console.WriteLine("Extracting " + tarFileName + " to " + destFolder + "...");
+            
+            // We have to leave the unpack-directory in order to be able to delete the temp
+            // files afterwards again, especially on Windows.
+            string formerDir = Directory.GetCurrentDirectory();
+
             using (Stream inStream = File.OpenRead(tarFileName))
             {
-                TarArchive tarArchive = TarArchive.CreateInputTarArchive(inStream);
-                tarArchive.ExtractContents(destFolder);
-                tarArchive.Close();
+                using (TarArchive tarArchive = TarArchive.CreateInputTarArchive(inStream))
+                {
+                    Directory.CreateDirectory(destFolder);
+                    Directory.SetCurrentDirectory(destFolder);
+                    tarArchive.ExtractContents(".");
+                }
             }
+
+            Directory.SetCurrentDirectory(formerDir);
         }
 
         /// <summary>
