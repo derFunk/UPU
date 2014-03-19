@@ -27,11 +27,13 @@ Works on
 - Windows
 - Linux / Mac OSX with Mono. Example: $ mono UpuConsole.exe -i TestPackage.unitypackage (You have Mono installed if you have Unity 3D installed :+1:
 
-Roadmap (Todos)
+Todos
 ---
 
-1. Add option to only display the file structure which the package contains to be able to extract only certain files on command line.
-2. Add graphical user interface with the option to only extract certain files.
+1. Get rid of CommandLineParser.dll while keeping the command line API.
+2. Get rid of UpuCore.dll - just provide a single binary. Do that by linking the source files into the Console Project, instead of referencing the UpuCore.dll there.
+2. Add option to only display the file structure which the package contains to be able to extract only certain files on command line. For e.g. like "tree".
+3. Add graphical user interface with the option to only extract certain files.
 
 Download
 ---
