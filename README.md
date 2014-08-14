@@ -1,9 +1,16 @@
-UPU - .unityPackage unpacker
+UPU - .unityPackage unpacker CLI Tool
 ===
 
 This little Windows tool helps you to unpack Unity Packages from [Unity 3D](http://www.unity3d.com/ "Unity 3D"), and avoids that you have to open the Unity Editor in order to access the precious asset files bundled within the package.
 
 It also can add a context menu handler for the Windows Explorer which makes extraction of the files a lot easier.
+
+##UPU GUI
+
+NEW: This CLI project here is the foundation for the UI version:
+
+**Visit http://upu.derfunk.com/ to get it.**
+![UpuGui](http://upu.derfunk.com/img/upu_app_screen.png "UpuGui")
 
 What's working already?
 ---
