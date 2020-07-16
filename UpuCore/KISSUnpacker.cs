@@ -169,7 +169,7 @@ namespace UpuCore
         {
             // http://www.codeproject.com/Articles/15171/Simple-shell-context-menu
             // get full path to self, %L is a placeholder for the selected file
-            string menuCommand = string.Format("\"{0}\" \"%L\"", Assembly.GetEntryAssembly().Location);
+            string menuCommand = string.Format("\"{0}\" -i \"%L\"", Assembly.GetEntryAssembly().Location);
             RegisterShellHandler("Unity package file", "Unpack", "Unpack here", menuCommand);
         }
 
